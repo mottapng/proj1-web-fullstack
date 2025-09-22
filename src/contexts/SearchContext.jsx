@@ -9,9 +9,9 @@ const SEARCH_ERROR = "SEARCH_ERROR";
 const initialState = {
   query: "",
   results: [],
-  genre: "",
   loading: false,
   error: null,
+  sortBy: "relevance", // "relevance" or "popularity"
 };
 
 // Reducer function
@@ -23,7 +23,7 @@ const searchReducer = (state, action) => {
         loading: true,
         error: null,
         query: action.payload.query || state.query,
-        genre: action.payload.genre || state.genre,
+        sortBy: action.payload.sortBy || state.sortBy,
       };
 
     case SEARCH_SUCCESS:
@@ -55,10 +55,10 @@ export const SearchProvider = ({ children }) => {
   const [state, dispatch] = useReducer(searchReducer, initialState);
 
   // Action creators
-  const searchStart = (query, genre = "") => {
+  const searchStart = (query, sortBy = "relevance") => {
     dispatch({
       type: SEARCH_START,
-      payload: { query, genre },
+      payload: { query, sortBy },
     });
   };
 
