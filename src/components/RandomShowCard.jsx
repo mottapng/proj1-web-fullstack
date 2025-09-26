@@ -1,85 +1,49 @@
 import React from "react";
 import { useSearch } from "../contexts/SearchContext";
+import { Card, CardContent, Typography, Button, Box } from "@mui/material";
 
 const RandomShowCard = () => {
   const { searchStart, searchSuccess, searchError, loading } = useSearch();
 
-  // Buscar sugestão inteligente da API TVMaze
   const getSmartSuggestion = async () => {
     try {
-      // Despachar SEARCH_START
       searchStart("Sugestão Inteligente", "popularity");
-
-      // Buscar lista de shows (primeira página)
       const response = await fetch("https://api.tvmaze.com/shows");
-
-      if (!response.ok) {
-        throw new Error(
-          `Erro na API: ${response.status} ${response.statusText}`
-        );
-      }
-
+      if (!response.ok) throw new Error("Erro na API");
       const shows = await response.json();
-
-      if (!shows || shows.length === 0) {
-        throw new Error("Nenhum show encontrado na API");
-      }
-
-      // Filtrar shows populares (com peso alto e rating bom)
-      const popularShows = shows.filter((show) => {
-        const hasGoodWeight = show.weight && show.weight > 50;
-        const hasGoodRating = show.rating?.average && show.rating.average > 7.0;
-        const hasImage = show.image?.medium || show.image?.original;
-        const isRecent =
-          show.premiered && new Date(show.premiered).getFullYear() >= 2015;
-
-        return hasGoodWeight && hasGoodRating && hasImage && isRecent;
-      });
-
-      // Se não encontrar shows populares, usar os com maior peso
-      const showsToChooseFrom =
-        popularShows.length > 0
-          ? popularShows
-          : shows.filter((show) => show.weight && show.weight > 30);
-
-      if (showsToChooseFrom.length === 0) {
-        throw new Error("Nenhum show popular encontrado");
-      }
-
-      // Escolher um show da lista de populares
-      const randomIndex = Math.floor(Math.random() * showsToChooseFrom.length);
-      const suggestedShow = showsToChooseFrom[randomIndex];
-
-      // Formatar como resultado da busca (mesmo formato do SearchForm)
-      const formattedResult = [
-        {
-          show: suggestedShow,
-        },
-      ];
-
-      // Despachar SEARCH_SUCCESS com a sugestão
-      searchSuccess(formattedResult);
+      const popularShows = shows.filter(
+        (s) =>
+          s.weight > 50 &&
+          s.rating?.average > 7 &&
+          (s.image?.medium || s.image?.original) &&
+          new Date(s.premiered).getFullYear() >= 2015
+      );
+      const list = popularShows.length > 0 ? popularShows : shows;
+      const suggestedShow = list[Math.floor(Math.random() * list.length)];
+      searchSuccess([{ show: suggestedShow }]);
     } catch (error) {
-      // Despachar SEARCH_ERROR
       searchError(error.message);
     }
   };
 
   return (
-    <div className="random-show-card">
-      <div className="random-content">
-        <div className="random-icon">✨</div>
-        <h3>Recomendação para você!</h3>
-        <p>Descubra um show popular que as pessoas estão amando</p>
-        <button
+    <Card sx={{ mb: 3 }}>
+      <CardContent sx={{ textAlign: "center" }}>
+        <Typography variant="h6" gutterBottom>
+          ✨ Recomendação para você!
+        </Typography>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          Descubra um show popular que as pessoas estão amando
+        </Typography>
+        <Button
           onClick={getSmartSuggestion}
+          variant="outlined"
           disabled={loading}
-          className="random-button"
         >
           {loading ? "Buscando..." : "Me Surpreenda"}
-        </button>
-      </div>
-    </div>
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 

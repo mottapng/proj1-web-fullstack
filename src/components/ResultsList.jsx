@@ -1,82 +1,64 @@
 import React from "react";
 import { useSearch } from "../contexts/SearchContext";
 import ResultCard from "./ResultCard";
+import { Typography, Grid, Alert, CircularProgress, Box } from "@mui/material";
 
 const ResultsList = () => {
   const { results, loading, error, query } = useSearch();
 
-  // Componente de Loading
-  const LoadingSpinner = () => (
-    <div className="loading-container">
-      <div className="loading-spinner"></div>
-      <p>Buscando shows...</p>
-    </div>
-  );
-
-  // Banner de Erro
-  const ErrorBanner = ({ error }) => (
-    <div className="error-banner">
-      <div className="error-icon">⚠️</div>
-      <div className="error-content">
-        <h3>Ops! Algo deu errado</h3>
-        <p>{error}</p>
-      </div>
-    </div>
-  );
-
-  // Estado vazio (sem busca ainda)
-  const EmptyState = () => (
-    <div className="empty-state">
-      <div className="empty-icon">🔍</div>
-      <h3>Busque por shows</h3>
-      <p>Digite o nome de um show na barra de pesquisa acima</p>
-    </div>
-  );
-
-  // Sem resultados encontrados
-  const NoResults = () => (
-    <div className="no-results">
-      <div className="no-results-icon">😔</div>
-      <h3>Nenhum show encontrado</h3>
-      <p>Não encontramos shows para "{query}"</p>
-      <p>Tente usar termos diferentes ou verifique a ortografia</p>
-    </div>
-  );
-
-  // Renderizar conteúdo baseado no estado
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <Box textAlign="center" mt={4}>
+        <CircularProgress />
+        <Typography mt={2}>Buscando shows...</Typography>
+      </Box>
+    );
   }
 
   if (error) {
-    return <ErrorBanner error={error} />;
+    return <Alert severity="error">{error}</Alert>;
   }
 
   if (!query) {
-    return <EmptyState />;
+    return <Typography textAlign="center" mt={4}>🔍 Busque por shows</Typography>;
   }
 
   if (!results || results.length === 0) {
-    return <NoResults />;
+    return (
+      <Typography textAlign="center" mt={4}>
+        <h3>😔</h3>
+        Nenhum show encontrado para "{query}"
+      </Typography>
+    );
   }
 
   // Renderizar lista de resultados
   return (
-    <div className="results-list">
-      <div className="results-header">
-        <h2>Resultados para "{query}"</h2>
-        <span className="results-count">
-          {results.length} show{results.length !== 1 ? "s" : ""} encontrado
-          {results.length !== 1 ? "s" : ""}
-        </span>
-      </div>
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        Resultados para "{query}"
+      </Typography>
+      <Typography variant="body2" gutterBottom>
+        {results.length} show{results.length !== 1 ? "s" : ""} encontrado
+        {results.length !== 1 ? "s" : ""}
+      </Typography>
 
-      <div className="results-grid">
+      <Grid container spacing={2} justifyContent={results.length === 1 ? "center" : "flex-start"}>
         {results.map((result) => (
-          <ResultCard key={result.show.id} show={result.show} />
+          <Grid 
+            item 
+            xs={12} 
+            sm={results.length === 1 ? 8 : 6} 
+            md={results.length === 1 ? 6 : 4} 
+            lg={results.length === 1 ? 4 : 4}
+            key={result.show.id} 
+            sx={{ display: 'flex' }}
+          >
+            <ResultCard show={result.show} />
+          </Grid>
         ))}
-      </div>
-    </div>
+      </Grid>
+    </Box>
   );
 };
 

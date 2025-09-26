@@ -1,4 +1,14 @@
 import React from "react";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  CardActions,
+  Button,
+  Chip,
+  Stack,
+} from "@mui/material";
 
 const ResultCard = ({ show }) => {
   // Extrair dados do show
@@ -35,41 +45,46 @@ const ResultCard = ({ show }) => {
     : "Sem avaliação";
 
   return (
-    <div className="result-card">
-      <div className="card-image">
-        <img
-          src={imageUrl}
-          alt={`Poster de ${name}`}
-          loading="lazy"
-          onError={(e) => {
-            e.target.src = "/placeholder-show.jpg";
-          }}
-        />
-      </div>
-
-      <div className="card-content">
-        <h3 className="card-title">{name}</h3>
-
-        <div className="card-meta">
-          <span className="card-genres">{genresText}</span>
-          <span className="card-year">{year}</span>
-          <span className="card-rating">{ratingText}</span>
-        </div>
-
-        <p className="card-summary">{cleanSummary}</p>
-
-        <div className="card-actions">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="card-link"
-          >
-            Ver detalhes no TVMaze
-          </a>
-        </div>
-      </div>
-    </div>
+    <Card sx={{ maxWidth: 345, m: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardMedia
+        component="img"
+        sx={{
+          height: 400,
+          objectFit: 'contain',
+          objectPosition: 'center',
+          backgroundColor: '#f5f5f5',
+          paddingTop: '26px'
+        }}
+        image={imageUrl}
+        alt={name}
+        onError={(e) => (e.target.src = "/placeholder-show.jpg")}
+      />
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <Typography variant="h6" gutterBottom>
+          {name}
+        </Typography>
+        <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: "wrap" }}>
+          {genres.length > 0
+            ? genres.map((genre) => <Chip key={genre} label={genre} size="small" />)
+            : <Chip label="Gênero não informado" size="small" />}
+          <Chip label={year} size="small" color="primary" />
+          <Chip label={`⭐ ${ratingText}`} size="small" />
+        </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+          {cleanSummary}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button
+          size="small"
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Ver detalhes no TVMaze
+        </Button>
+      </CardActions>
+    </Card>
   );
 };
 

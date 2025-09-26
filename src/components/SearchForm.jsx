@@ -1,5 +1,69 @@
 import React, { useState } from "react";
 import { useSearch } from "../contexts/SearchContext";
+import {
+  TextField,
+  Button,
+  Box,
+  MenuItem,
+  Typography,
+  ThemeProvider,
+  createTheme,
+} from "@mui/material";
+
+// Criar tema customizado com melhor contraste
+const customTheme = createTheme({
+  components: {
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            backgroundColor: '#222222ff',
+            '& fieldset': {
+              borderColor: '#ccbfa7ff',
+            },
+            '&:hover fieldset': {
+              borderColor: '#999999',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#1976d2',
+            },
+          },
+          '& .MuiInputLabel-root': {
+            color: '#ccbfa7ff',
+          },
+          '& .MuiInputBase-input': {
+            color: '#cccccc',
+          },
+        },
+      },
+    },
+    MuiSelect: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#1b1b1bff',
+          color: '#ccbfa7ff',
+        },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#e3f2fd',
+          color: '#2b2b2bff',
+          '&:hover': {
+            backgroundColor: '#1976d2',
+          },
+          '&.Mui-selected': {
+            backgroundColor: '#e3f2fd',
+            '&:hover': {
+              backgroundColor: '#1976d2',
+            },
+          },
+        },
+      },
+    },
+  },
+});
 
 const SearchForm = () => {
   const [formData, setFormData] = useState({
@@ -23,7 +87,6 @@ const SearchForm = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // Manipular mudanças nos inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -42,42 +105,17 @@ const SearchForm = () => {
 
   // Buscar shows na API TVMaze
   const searchShows = async (query, genre = "", sortBy = "relevance") => {
-    // Construir URL com parâmetros
     const baseUrl = "https://api.tvmaze.com/search/shows";
-    const params = new URLSearchParams();
-    params.append("q", query);
-
-    if (genre) {
-      params.append("genre", genre);
-    }
-
-    const url = `${baseUrl}?${params.toString()}`;
-
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Erro na API: ${response.status} ${response.statusText}`);
-    }
-
+    const params = new URLSearchParams({ q: query, genre });
+    const response = await fetch(`${baseUrl}?${params.toString()}`);
+    if (!response.ok) throw new Error("Erro ao buscar na API");
     let data = await response.json();
-
-    if (!data || data.length === 0) {
-      throw new Error("Nenhum show encontrado para os critérios de busca");
-    }
-
-    // Ordenar por popularidade se solicitado
     if (sortBy === "popularity") {
-      data = data.sort((a, b) => {
-        const weightA = a.show.weight || 0;
-        const weightB = b.show.weight || 0;
-        return weightB - weightA; // Maior peso primeiro (mais popular)
-      });
+      data = data.sort((a, b) => (b.show.weight || 0) - (a.show.weight || 0));
     }
-
     return data;
   };
 
-  // Manipular envio do formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -105,42 +143,39 @@ const SearchForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="search-form">
-      <div className="form-group">
-        <label htmlFor="query">Buscar Shows *</label>
-        <input
-          type="text"
-          id="query"
+    <ThemeProvider theme={customTheme}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+        <TextField
+          label="Buscar Shows *"
           name="query"
           value={formData.query}
           onChange={handleInputChange}
-          placeholder="Digite o nome do show..."
-          className={validationErrors.query ? "error" : ""}
+          fullWidth
+          margin="normal"
+          error={!!validationErrors.query}
+          helperText={validationErrors.query}
           disabled={loading}
+          variant="outlined"
         />
-        {validationErrors.query && (
-          <span className="error-message">{validationErrors.query}</span>
-        )}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="sortBy">Ordenar por</label>
-        <select
-          id="sortBy"
+        <TextField
+          select
+          label="Ordenar por"
           name="sortBy"
           value={formData.sortBy}
           onChange={handleInputChange}
+          fullWidth
+          margin="normal"
           disabled={loading}
+          variant="outlined"
         >
-          <option value="relevance">Relevância</option>
-          <option value="popularity">Mais Famosos</option>
-        </select>
-      </div>
-
-      <button type="submit" disabled={loading} className="search-button">
-        {loading ? "Buscando..." : "Buscar Shows"}
-      </button>
-    </form>
+          <MenuItem value="relevance">Relevância</MenuItem>
+          <MenuItem value="popularity">Mais Famosos</MenuItem>
+        </TextField>
+        <Button type="submit" variant="contained" fullWidth disabled={loading} sx={{ mt: 2 }}>
+          {loading ? "Buscando..." : "Buscar Shows"}
+        </Button>
+      </Box>
+    </ThemeProvider>
   );
 };
 
